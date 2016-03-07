@@ -4,6 +4,12 @@ var request = require("request");
 
 var listeners = { dm: [], mention: []};
 
+function reply( message, callback ){
+  request( "https://slack.com/api/chat.postMessage?token=" + env.token + "&text=" + encodeURIComponent(message) + "&channel=" + this.channel, function( err, response, body ){
+    callback(JSON.parse(body))
+  })
+}
+
 var slipshod = {
   connect: function( callback ){
     var self = this;
@@ -13,15 +19,16 @@ var slipshod = {
       callback(self);
       ws.on( "message", function( msgObj ){
         var msg = JSON.parse(msgObj);
+        msg.reply = reply;
         if(msg.type == "message" && msg.channel.substr(0,1) == "D"){
           for(var i = 0; i < listeners.dm.length; i++){
-            listeners.dm[i](msg);
+            listeners.dm[i].call(msg, msg);
           }
           return;
         }
-        if(msg.type == "message" && msg.text.match(self.user)){
+        if(msg.type == "message" && !msg.subtype && msg.text.match(self.user)){
           for(var i = 0; i < listeners.mention.length; i++){
-            listeners.mention[i](msg);
+            listeners.mention[i].call(msg, msg);
           }
         }
       });

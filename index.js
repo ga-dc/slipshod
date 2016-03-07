@@ -5,6 +5,9 @@ slipshod.connect(function(bot){
     console.log("dmd", msg);
   })
   bot.on("mention", function(msg){
-    console.log("mentioned!", msg);
+
+    msg.reply(msg.text.split(" ").reverse().join(" "), function(response){
+      console.log(response)
+    })
   })
 })
